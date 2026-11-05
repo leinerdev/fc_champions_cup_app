@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { notify } from '@/features/notifications/notify'
 import { supabase } from '@/lib/supabase'
 import {
   blockingTies,
@@ -207,7 +208,10 @@ export function useJoinTournament() {
       if (error) throw error
       return data as string
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tournaments'] }),
+    onSuccess: (tournamentId) => {
+      notify({ type: 'joined', tournament_id: tournamentId })
+      return queryClient.invalidateQueries({ queryKey: ['tournaments'] })
+    },
   })
 }
 
@@ -292,6 +296,7 @@ export function useStartTournament(tournament: Tournament, members: Member[]) {
       }
     },
     onSuccess: async () => {
+      notify({ type: 'started', tournament_id: tournament.id })
       await invalidateTournament(queryClient, tournament.id)
       await queryClient.invalidateQueries({ queryKey: keys.matches(tournament.id) })
     },
@@ -318,6 +323,7 @@ export function useCloseLeague(tournament: Tournament, members: Member[], matche
       await commit(tournament.id, draw, 'knockout')
     },
     onSuccess: async () => {
+      notify({ type: 'knockout', tournament_id: tournament.id })
       await invalidateTournament(queryClient, tournament.id)
       await queryClient.invalidateQueries({ queryKey: keys.matches(tournament.id) })
     },
@@ -348,7 +354,15 @@ export interface ResultInput {
  * Avanza la llave según los resultados guardados (ganadores a la siguiente ronda y campeón).
  * Cualquier miembro puede dispararlo; el servidor solo deja rellenar plazas vacías a quien no es admin.
  */
-export async function advanceBracket(tournament: Tournament, isAdmin: boolean) {
+export interface AdvanceOutcome {
+  /** Partidos que acaban de quedar con sus dos jugadores definidos (para avisarles). */
+  newMatchups: string[]
+  /** Se acaba de coronar (o cambiar) al campeón. */
+  crowned: boolean
+}
+
+export async function advanceBracket(tournament: Tournament, isAdmin: boolean): Promise<AdvanceOutcome> {
+  const none: AdvanceOutcome = { newMatchups: [], crowned: false }
   const { data, error } = await supabase
     .from('matches')
     .select('*')
@@ -361,7 +375,7 @@ export async function advanceBracket(tournament: Tournament, isAdmin: boolean) {
 
   // Corrección de la final tras terminar el torneo: solo un admin lo reabre.
   if (status === 'finished' && champion !== tournament.champion_member_id) {
-    if (!isAdmin) return
+    if (!isAdmin) return none
     const { error: reopenError } = await supabase.rpc('apply_bracket_updates', {
       p_tournament: tournament.id,
       p_updates: [],
@@ -372,8 +386,8 @@ export async function advanceBracket(tournament: Tournament, isAdmin: boolean) {
     status = 'knockout'
   }
 
-  if (status !== 'knockout') return
-  if (progress.updates.length === 0 && !champion) return
+  if (status !== 'knockout') return none
+  if (progress.updates.length === 0 && !champion) return none
 
   const { error: applyError } = await supabase.rpc('apply_bracket_updates', {
     p_tournament: tournament.id,
@@ -382,6 +396,11 @@ export async function advanceBracket(tournament: Tournament, isAdmin: boolean) {
     p_status: null,
   })
   if (applyError) throw applyError
+
+  return {
+    newMatchups: progress.updates.filter((u) => u.home_id && u.away_id).map((u) => u.matchId),
+    crowned: champion !== null && champion !== tournament.champion_member_id,
+  }
 }
 
 export function useSaveResult(tournament: Tournament, isAdmin: boolean) {
@@ -400,14 +419,25 @@ export function useSaveResult(tournament: Tournament, isAdmin: boolean) {
         .select('id')
       if (error) throw error
       if (!data?.length) throw new Error('No tienes permiso para registrar este resultado.')
+      notify({
+        type: 'result',
+        tournament_id: tournament.id,
+        match_id: match.id,
+        corrected: match.status === 'played',
+      })
       if (tournament.status === 'knockout' || tournament.status === 'finished') {
-        await advanceBracket(tournament, isAdmin)
+        const outcome = await advanceBracket(tournament, isAdmin)
+        if (outcome.newMatchups.length > 0) {
+          notify({ type: 'next', tournament_id: tournament.id, match_ids: outcome.newMatchups })
+        }
+        if (outcome.crowned) notify({ type: 'champion', tournament_id: tournament.id })
       }
     },
     onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: keys.matches(tournament.id) }),
         queryClient.invalidateQueries({ queryKey: keys.tournament(tournament.id) }),
+        queryClient.invalidateQueries({ queryKey: ['stats'] }),
       ])
     },
   })
@@ -431,6 +461,7 @@ export function useClearResult(tournament: Tournament, isAdmin: boolean) {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: keys.matches(tournament.id) }),
         queryClient.invalidateQueries({ queryKey: keys.tournament(tournament.id) }),
+        queryClient.invalidateQueries({ queryKey: ['stats'] }),
       ])
     },
   })

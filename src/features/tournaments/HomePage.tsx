@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { ArrowRight, KeyRound, Plus, Trophy } from 'lucide-react'
 import { PageLoader } from '@/components/ui/Spinner'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { NotificationsPrompt } from '@/features/notifications/NotificationsPrompt'
 import { friendlyError } from '@/lib/supabase'
 import { useMyTournaments } from './api'
 import { TournamentCard } from './TournamentCard'
@@ -34,6 +35,8 @@ export function HomePage() {
         </h1>
         <p className="text-slate-400">¿Listo para escribir tu historia en el campo?</p>
       </motion.section>
+
+      <NotificationsPrompt />
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <motion.div

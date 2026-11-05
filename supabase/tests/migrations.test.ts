@@ -72,6 +72,7 @@ beforeAll(async () => {
   await db.exec(STUBS)
   await db.exec(sql('0001_profiles_storage.sql'))
   await db.exec(sql('0002_tournaments.sql'))
+  await db.exec(sql('0003_push.sql'))
   await db.exec(GRANTS)
   for (const u of ['leinerdev', 'ana', 'beto', 'carla', 'diego', 'extra']) await signUp(u)
   // El super admin se asigna desde el SQL Editor (auth.uid() es null)
@@ -475,5 +476,88 @@ describe('torneos', () => {
       [cupId],
     )
     expect(left2.rows[0].n).toBe('0')
+  })
+})
+
+describe('notificaciones push', () => {
+  const sub = (n: number) => ({
+    endpoint: `https://push.example.com/send/device-${n}-abcdefghijklmnop`,
+    p256dh: 'BPublicKeyPublicKeyPublicKeyPublicKey',
+    auth: 'AuthSecretAuthSecret',
+  })
+  const save = (user: string, s: ReturnType<typeof sub>) =>
+    as(user, () =>
+      db.query(`select public.save_push_subscription($1, $2, $3, $4)`, [s.endpoint, s.p256dh, s.auth, 'Test UA']),
+    )
+
+  it('guarda la suscripción del usuario y la actualiza si se repite el endpoint', async () => {
+    await save('ana', sub(1))
+    await save('ana', sub(1))
+    const r = await as('ana', () => db.query(`select user_id from public.push_subscriptions`))
+    expect(r.rows).toHaveLength(1)
+    expect((r.rows[0] as { user_id: string }).user_id).toBe(ids.ana)
+  })
+
+  it('cada usuario ve solo sus propias suscripciones', async () => {
+    await save('beto', sub(2))
+    const ana = await as('ana', () => db.query(`select endpoint from public.push_subscriptions`))
+    const beto = await as('beto', () => db.query(`select endpoint from public.push_subscriptions`))
+    expect(ana.rows).toHaveLength(1)
+    expect(beto.rows).toHaveLength(1)
+    expect((ana.rows[0] as { endpoint: string }).endpoint).not.toBe((beto.rows[0] as { endpoint: string }).endpoint)
+  })
+
+  it('un dispositivo compartido pasa al último usuario que inicia sesión', async () => {
+    await save('carla', sub(1)) // mismo endpoint que ana
+    const ana = await as('ana', () => db.query(`select 1 from public.push_subscriptions where endpoint = $1`, [sub(1).endpoint]))
+    const carla = await as('carla', () => db.query(`select 1 from public.push_subscriptions where endpoint = $1`, [sub(1).endpoint]))
+    expect(ana.rows).toHaveLength(0)
+    expect(carla.rows).toHaveLength(1)
+  })
+
+  it('no permite insertar ni modificar directamente, ni borrar las de otro', async () => {
+    await fails(
+      as('ana', () =>
+        db.query(
+          `insert into public.push_subscriptions (user_id, endpoint, p256dh, auth)
+           values ($1, 'https://push.example.com/send/directo-123456', 'BPublicKeyPublicKey', 'AuthSecretAuth')`,
+          [ids.ana],
+        ),
+      ),
+      /row-level security/,
+    )
+    const upd = await as('ana', () =>
+      db.query(`update public.push_subscriptions set user_id = $1 returning id`, [ids.ana]),
+    )
+    expect(upd.rows).toHaveLength(0)
+    const del = await as('ana', () =>
+      db.query(`delete from public.push_subscriptions where endpoint = $1 returning id`, [sub(2).endpoint]),
+    )
+    expect(del.rows).toHaveLength(0) // es de beto
+  })
+
+  it('el usuario puede borrar su propia suscripción', async () => {
+    const del = await as('beto', () => db.query(`delete from public.push_subscriptions returning id`))
+    expect(del.rows).toHaveLength(1)
+  })
+
+  it('rechaza endpoints que no son https y a usuarios anónimos', async () => {
+    await fails(
+      as('ana', () => db.query(`select public.save_push_subscription('http://inseguro.example.com/x', 'aaaaaaaaaaaa', 'bbbbbbbbbbbb')`)),
+      /inválido/,
+    )
+    await fails(
+      as(null, () => db.query(`select public.save_push_subscription('https://push.example.com/send/anon-abcdefg', 'aaaaaaaaaaaa', 'bbbbbbbbbbbb')`)),
+      /permission denied|iniciar sesión/,
+    )
+  })
+
+  it('las suscripciones se eliminan al borrar el perfil', async () => {
+    await save('extra', sub(9))
+    await db.query(`delete from auth.users where id = $1`, [ids.extra])
+    // auth.users no tiene cascada hacia profiles en el stub: se borra el perfil directamente
+    await db.query(`delete from public.profiles where id = $1`, [ids.extra])
+    const r = await db.query(`select 1 from public.push_subscriptions where endpoint = $1`, [sub(9).endpoint])
+    expect(r.rows).toHaveLength(0)
   })
 })

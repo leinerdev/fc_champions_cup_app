@@ -10,6 +10,7 @@ import { squareAvatarBlob } from '@/lib/image'
 import { friendlyError, supabase, validatePassword } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { nextFromSearch } from '@/features/auth/next'
+import { NotificationsCard } from '@/features/notifications/NotificationsCard'
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
@@ -214,6 +215,8 @@ export function ProfilePage() {
           Guardar perfil
         </button>
       </form>
+
+      <NotificationsCard />
 
       <form onSubmit={onChangePassword} className="card space-y-4">
         <h2 className="flex items-center gap-2 text-2xl font-bold text-white uppercase">

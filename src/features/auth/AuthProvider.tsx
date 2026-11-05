@@ -17,6 +17,7 @@ import {
   validatePassword,
   validateUsername,
 } from '@/lib/supabase'
+import { detachFromUser } from '@/lib/push'
 import type { Profile, ProfilePrivate } from '@/lib/types'
 
 interface AuthContextValue {
@@ -118,6 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const signOut = useCallback(async () => {
+    // Este dispositivo deja de recibir los avisos del usuario que sale.
+    await detachFromUser().catch(() => undefined)
     await supabase.auth.signOut()
     queryClient.clear()
   }, [queryClient])

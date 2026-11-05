@@ -42,6 +42,8 @@ export default defineConfig({
         // Nunca cachear llamadas a Supabase: siempre datos frescos.
         navigateFallbackDenylist: [/^\/rest\//, /^\/auth\//, /^\/storage\//],
         cleanupOutdatedCaches: true,
+        // Manejadores de notificaciones push (public/push-sw.js)
+        importScripts: ['push-sw.js'],
       },
     }),
   ],

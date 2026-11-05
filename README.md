@@ -39,7 +39,30 @@ supabase functions deploy admin-reset-password
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` ya están disponibles para las funciones; no hace falta configurar secretos.
 
-## 4. Desarrollo
+## 4. Notificaciones push (opcional)
+
+Avisan cuando se registra un resultado, cuando te toca jugar una nueva ronda, al arrancar un torneo, al sortear las eliminatorias, al coronarse un campeón y cuando alguien se une a tu torneo. Usan Web Push estándar (VAPID): sin servicios de terceros.
+
+1. Migración: ejecuta `supabase/migrations/0003_push.sql` en el SQL Editor (o `supabase db push`).
+2. Genera las claves VAPID (un par, una sola vez):
+   ```bash
+   npx web-push generate-vapid-keys
+   ```
+3. Guarda la **privada** como secreto de Supabase y despliega la función (la privada nunca va al frontend ni al repositorio):
+   ```bash
+   supabase secrets set VAPID_PUBLIC_KEY=<publica> VAPID_PRIVATE_KEY=<privada> VAPID_SUBJECT=mailto:tu@correo.com
+   supabase functions deploy notify
+   ```
+4. Pon la **pública** en `VITE_VAPID_PUBLIC_KEY` (en `.env.local` y en las variables de entorno de Vercel) y vuelve a desplegar.
+5. Cada persona las activa en **Perfil → Notificaciones** (o con el aviso de la pantalla de inicio).
+
+Notas: en iPhone/iPad (iOS 16.4+) solo funcionan con la app **instalada** en la pantalla de inicio. Las suscripciones caducadas se limpian solas. Sin `VITE_VAPID_PUBLIC_KEY` la función queda desactivada y la app no muestra nada de notificaciones.
+
+## 5. Estadísticas
+
+La pestaña **Stats** reúne los datos de todos los torneos que puedes ver: rankings (goleadores, victorias, títulos, defensa y efectividad), récords y el **cara a cara** entre dos amigos. Cuenta cada partido jugado una vez (los penales no cambian el marcador) y solo incluye jugadores con cuenta: los jugadores "sin cuenta" no tienen historial entre torneos, aunque sus partidos sí suman al rival que tiene cuenta. Se calcula en el navegador, sin migraciones adicionales.
+
+## 6. Desarrollo
 
 ```bash
 npm install
@@ -51,10 +74,10 @@ npm run icons        # regenera los iconos PWA desde public/icon.svg
 
 > Sin variables de entorno la app muestra una pantalla de configuración en lugar de fallar.
 
-## 5. Despliegue en Vercel
+## 7. Despliegue en Vercel
 
 1. Importa el repositorio en [vercel.com](https://vercel.com) (framework **Vite**, detectado automáticamente).
-2. Variables de entorno: `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
+2. Variables de entorno: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y (si usas notificaciones) `VITE_VAPID_PUBLIC_KEY`.
 3. `vercel.json` ya incluye el *rewrite* de SPA, necesario para los enlaces de invitación `/join/<código>`.
 4. En Supabase → **Authentication → URL Configuration** pon tu dominio de Vercel como *Site URL*.
 

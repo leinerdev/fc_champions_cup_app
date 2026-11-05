@@ -25,6 +25,9 @@ const JoinPage = lazy(() =>
 const TournamentPage = lazy(() =>
   import('@/features/tournaments/TournamentPage').then((m) => ({ default: m.TournamentPage })),
 )
+const StatsPage = lazy(() =>
+  import('@/features/stats/StatsPage').then((m) => ({ default: m.StatsPage })),
+)
 const AdminPage = lazy(() =>
   import('@/features/admin/AdminPage').then((m) => ({ default: m.AdminPage })),
 )
@@ -53,6 +56,7 @@ export default function App() {
                     <Route path="/torneos/nuevo" element={<CreateTournamentPage />} />
                     <Route path="/torneos/:id" element={<TournamentPage />} />
                     <Route path="/join/:code" element={<JoinPage />} />
+                    <Route path="/estadisticas" element={<StatsPage />} />
                     <Route path="/perfil" element={<ProfilePage />} />
                     <Route element={<RequireSuperAdmin />}>
                       <Route path="/admin" element={<AdminPage />} />

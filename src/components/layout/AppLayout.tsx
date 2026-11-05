@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Home, Shield, UserRound, type LucideIcon } from 'lucide-react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { BarChart3, Home, Shield, UserRound, type LucideIcon } from 'lucide-react'
 import { InstallPrompt } from '@/components/InstallPrompt'
 import { Avatar } from '@/components/ui/Avatar'
 import { LogoMark, Wordmark } from '@/components/ui/Logo'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { syncSubscription } from '@/lib/push'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -15,10 +16,12 @@ interface NavItem {
 }
 
 export function AppLayout() {
-  const { profile, isSuperAdmin } = useAuth()
+  const { profile, isSuperAdmin, userId } = useAuth()
+  const navigate = useNavigate()
 
   const items: NavItem[] = [
     { to: '/', label: 'Inicio', icon: Home, end: true },
+    { to: '/estadisticas', label: 'Stats', icon: BarChart3 },
     { to: '/perfil', label: 'Perfil', icon: UserRound },
     ...(isSuperAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
   ]
@@ -29,6 +32,23 @@ export function AppLayout() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 })
   }, [pathname])
+
+  // Notificaciones push: re-asocia este dispositivo con el usuario actual
+  // y abre la pantalla correcta cuando se toca una notificación con la app ya abierta.
+  useEffect(() => {
+    if (userId) void syncSubscription().catch(() => undefined)
+  }, [userId])
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+    const onMessage = (e: MessageEvent) => {
+      const data = e.data as { type?: string; url?: string } | null
+      if (data?.type === 'fccc:navigate' && typeof data.url === 'string' && data.url.startsWith('/')) {
+        navigate(data.url)
+      }
+    }
+    navigator.serviceWorker.addEventListener('message', onMessage)
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage)
+  }, [navigate])
 
   // "App shell": la ventana no se desplaza. Cabecera y barra inferior son hijos
   // normales de un contenedor de alto fijo (100dvh) y solo el contenido scrollea.
