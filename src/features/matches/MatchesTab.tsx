@@ -86,7 +86,7 @@ export function MatchesTab({ view }: { view: TournamentView }) {
                 {g.matches.filter((m) => m.status === 'played').length}/{g.matches.length}
               </span>
             </h3>
-            <div className="grid gap-2 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
               {g.matches.map((m) => (
                 <MatchCard key={m.id} view={view} match={m} onEdit={setEditing} />
               ))}

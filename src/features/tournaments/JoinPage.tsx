@@ -42,7 +42,7 @@ export function JoinPage() {
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="card card-gold space-y-5 text-center">
-        <p className="field-label !mb-0">Te invitaron a jugar</p>
+        <p className="field-label !mb-2">Te invitaron a jugar</p>
         <span
           className={`mx-auto flex h-20 w-20 items-center justify-center rounded-2xl ${
             t.type === 'league' ? 'bg-neon-400/15 text-neon-300' : 'bg-gold-500/15 text-gold-400'

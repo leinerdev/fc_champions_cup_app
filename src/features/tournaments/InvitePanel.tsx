@@ -48,7 +48,7 @@ export function InvitePanel({ t }: { t: Tournament }) {
           Compártelo o envía el enlace: quien se una entra como <strong className="text-slate-200">invitado</strong>.
         </p>
       </div>
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void copy('code')}>
           {copied === 'code' ? <Check size={16} className="text-win" /> : <Copy size={16} />}
           {copied === 'code' ? 'Copiado' : 'Copiar código'}

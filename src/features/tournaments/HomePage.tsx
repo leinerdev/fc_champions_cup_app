@@ -35,7 +35,7 @@ export function HomePage() {
         <p className="text-slate-400">¿Listo para escribir tu historia en el campo?</p>
       </motion.section>
 
-      <section className="grid gap-4 sm:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -119,7 +119,7 @@ export function HomePage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {data.map((t, i) => (
               <TournamentCard key={t.id} t={t} index={i} />
             ))}

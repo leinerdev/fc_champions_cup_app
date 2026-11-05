@@ -185,7 +185,7 @@ export function SummaryTab({ view }: { view: TournamentView }) {
       {t.status !== 'draft' && myUpcoming.length > 0 && (
         <section className="space-y-2">
           <h3 className="text-2xl font-bold tracking-wider text-slate-300 uppercase">Tus próximos partidos</h3>
-          <div className="grid gap-2 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {myUpcoming.map((m) => (
               <MatchCard key={m.id} view={view} match={m} onEdit={setEditing} />
             ))}

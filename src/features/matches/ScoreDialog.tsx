@@ -75,7 +75,7 @@ function Counter({
 function Team({ member }: { member: Member | undefined }) {
   const name = memberLabel(member)
   return (
-    <div className="flex w-24 flex-col items-center gap-1.5 text-center sm:w-28">
+    <div className="flex w-full flex-col items-center gap-1.5 text-center">
       <Avatar name={name} url={member?.profile?.avatar_url} size={52} />
       <span className="line-clamp-2 font-display text-lg leading-tight font-semibold text-white">{name}</span>
     </div>
@@ -143,14 +143,16 @@ function ScoreForm({
         {match.leg === 2 ? ' · Vuelta' : match.stage !== 'league' && view.matches.some((m) => m.stage === match.stage && m.slot === match.slot && m.leg === 2) ? ' · Ida' : ''}
       </p>
 
-      <div className="flex items-start justify-center gap-2 sm:gap-4">
-        <Team member={homeM} />
-        <div className="flex items-center gap-2 pt-1">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div className="flex flex-col items-center gap-3">
+          <Team member={homeM} />
           <Counter value={home} onChange={setHome} label={memberLabel(homeM)} />
-          <span className="pt-2 font-display text-3xl text-slate-600">:</span>
+        </div>
+        <span className="font-display text-4xl text-slate-600">:</span>
+        <div className="flex flex-col items-center gap-3">
+          <Team member={awayM} />
           <Counter value={away} onChange={setAway} label={memberLabel(awayM)} />
         </div>
-        <Team member={awayM} />
       </div>
 
       {pens && (
