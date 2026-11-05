@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <radialGradient id="bg" cx=".5" cy=".25" r=".9">
+      <stop offset="0" stop-color="#16348C"/>
+      <stop offset="1" stop-color="#040815"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE9A3"/>
+      <stop offset=".5" stop-color="#F5B83D"/>
+      <stop offset="1" stop-color="#B8791A"/>
+    </linearGradient>
+    <linearGradient id="navy" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B3FA0"/>
+      <stop offset="1" stop-color="#060D26"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g transform="translate(256 256) scale(.78) translate(-256 -262)">
+    <path d="M256 56 L424 112 V252 C424 352 352 420 256 462 C160 420 88 352 88 252 V112 Z" fill="url(#navy)" stroke="url(#gold)" stroke-width="14" stroke-linejoin="round"/>
+    <g fill="url(#gold)">
+      <path d="M256.0 118.0L259.9 128.6L271.2 129.1L262.4 136.1L265.4 146.9L256.0 140.7L246.6 146.9L249.6 136.1L240.8 129.1L252.1 128.6Z"/>
+      <path d="M200.0 135.0L203.2 143.6L212.4 144.0L205.2 149.7L207.6 158.5L200.0 153.5L192.4 158.5L194.8 149.7L187.6 144.0L196.8 143.6Z"/>
+      <path d="M312.0 135.0L315.2 143.6L324.4 144.0L317.2 149.7L319.6 158.5L312.0 153.5L304.4 158.5L306.8 149.7L299.6 144.0L308.8 143.6Z"/>
+      <path d="M194 178 H318 V232 C318 272 292 298 256 298 C220 298 194 272 194 232 Z"/>
+      <rect x="245" y="296" width="22" height="42" rx="4"/>
+      <rect x="212" y="336" width="88" height="20" rx="8"/>
+    </g>
+    <path d="M194 192 H172 C172 232 186 250 208 256" stroke="url(#gold)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M318 192 H340 C340 232 326 250 304 256" stroke="url(#gold)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M256.0 206.0L263.4 225.8L284.5 226.7L268.0 239.9L273.6 260.3L256.0 248.6L238.4 260.3L244.0 239.9L227.5 226.7L248.6 225.8Z" fill="#060D26"/>
+    <rect x="150" y="388" width="212" height="8" rx="4" fill="#22D3EE" opacity=".9"/>
+  </g>
+</svg>
