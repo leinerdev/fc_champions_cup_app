@@ -19,6 +19,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     const id = Symbol('modal')
     openStack.push(id)
     document.body.style.overflow = 'hidden'
+    document.getElementById('app-scroll')?.classList.add('scroll-locked')
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && openStack[openStack.length - 1] === id) onClose()
     }
@@ -26,7 +27,10 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     return () => {
       window.removeEventListener('keydown', onKey)
       openStack.splice(openStack.indexOf(id), 1)
-      if (openStack.length === 0) document.body.style.overflow = ''
+      if (openStack.length === 0) {
+        document.body.style.overflow = ''
+        document.getElementById('app-scroll')?.classList.remove('scroll-locked')
+      }
     }
   }, [open, onClose])
 

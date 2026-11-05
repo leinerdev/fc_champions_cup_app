@@ -30,14 +30,15 @@ function Side({
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-1 items-center gap-2.5',
-        align === 'right' && 'flex-row-reverse text-right',
+        // móvil: avatar arriba y nombre debajo (cabe el nombre completo); desde sm: en fila
+        'flex min-w-0 flex-1 flex-col items-center gap-1 text-center sm:flex-row sm:gap-2.5',
+        align === 'right' ? 'sm:flex-row-reverse sm:text-right' : 'sm:text-left',
       )}
     >
       <Avatar name={name} url={member?.profile?.avatar_url} size={40} ring={isMe} />
       <span
         className={cn(
-          'truncate font-display text-xl leading-tight font-semibold',
+          'line-clamp-2 min-w-0 text-lg leading-tight font-semibold break-words sm:line-clamp-1 sm:text-xl font-display',
           member ? (winner ? 'text-gold-300' : 'text-white') : 'text-slate-500 italic',
         )}
       >

@@ -104,6 +104,9 @@
       radial-gradient(40rem 30rem at 50% 120%, rgb(34 57 138 / 0.5), transparent 70%);
     background-attachment: fixed;
   }
+  #app-scroll.scroll-locked {
+    overflow-y: hidden;
+  }
   .pitch-lines {
     background-image:
       linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px),

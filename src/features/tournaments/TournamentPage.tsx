@@ -106,7 +106,7 @@ export function TournamentPage() {
       </header>
 
       <nav
-        className="sticky top-16 z-20 -mx-4 overflow-x-auto border-b border-white/10 bg-night-900/85 px-4 backdrop-blur-xl"
+        className="sticky top-0 z-20 -mx-4 overflow-x-auto border-b border-white/10 bg-night-900/85 px-4 backdrop-blur-xl"
         aria-label="Secciones del torneo"
       >
         <div role="tablist" className="flex min-w-max gap-1">

@@ -1,4 +1,5 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Home, Shield, UserRound, type LucideIcon } from 'lucide-react'
 import { InstallPrompt } from '@/components/InstallPrompt'
 import { Avatar } from '@/components/ui/Avatar'
@@ -22,11 +23,20 @@ export function AppLayout() {
     ...(isSuperAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
   ]
 
-  return (
-    <div className="stadium-bg relative min-h-dvh">
-      <div className="pitch-lines pointer-events-none absolute inset-x-0 top-0 h-[28rem]" />
+  // Al cambiar de pantalla, volver arriba (el scroll vive en #app-scroll, no en window).
+  const { pathname } = useLocation()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 })
+  }, [pathname])
 
-      <header className="safe-top sticky top-0 z-30 border-b border-white/10 bg-night-900/80 backdrop-blur-xl">
+  // "App shell": la ventana no se desplaza. Cabecera y barra inferior son hijos
+  // normales de un contenedor de alto fijo (100dvh) y solo el contenido scrollea.
+  // Así la barra inferior nunca depende de position:fixed ni de la barra del
+  // navegador / rebote de iOS, que la hacía "subir" al hacer scroll.
+  return (
+    <div className="stadium-bg relative flex h-dvh flex-col overflow-hidden">
+      <header className="safe-top z-30 shrink-0 border-b border-white/10 bg-night-900/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-5xl items-center gap-4 px-4">
           <Link to="/" className="flex items-center gap-2.5" aria-label="FC Champions Cup, inicio">
             <LogoMark size={36} />
@@ -64,14 +74,21 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main className="relative mx-auto max-w-5xl px-4 pt-6 pb-28 sm:pb-12">
-        <Outlet />
-      </main>
+      <div
+        id="app-scroll"
+        ref={scrollRef}
+        className="relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
+      >
+        <div className="pitch-lines pointer-events-none absolute inset-x-0 top-0 h-[28rem]" />
+        <main className="relative mx-auto max-w-5xl px-4 pt-6 pb-10">
+          <Outlet />
+        </main>
+      </div>
 
       <InstallPrompt />
 
       <nav
-        className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-night-900/90 backdrop-blur-xl sm:hidden"
+        className="safe-bottom z-30 shrink-0 border-t border-white/10 bg-night-900 sm:hidden"
         aria-label="Principal"
       >
         <div className="mx-auto flex max-w-md items-stretch justify-around">
